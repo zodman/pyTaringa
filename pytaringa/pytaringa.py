@@ -7,6 +7,8 @@ import json
 import requests
 import time
 import os
+import logging
+
 USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:29.0) '
 USER_AGENT += 'Gecko/20100101 Firefox/29.0'
 
@@ -15,13 +17,12 @@ API_URL = 'http://api.taringa.net'
 
 HEADERS = {'Referer': 'http://www.taringa.net',
            'User-Agent': USER_AGENT}
+FORMAT_LOGGIN= '%(asctime)-15s  %(levelname)s  %(module)s:%(funcName)s+%(lineno)d %(message)s'
 
+logger = logging.getLogger(__name__)
+logging.basicConfig(format=FORMAT_LOGGIN, level=logging.DEBUG)
 
-def debug(message):
-    now = datetime.now()
-    str_out = '[%s]: %s' % (now.strftime('%d-%m-%Y %H:%M'), message)
-
-    print str_out
+debug = logger.debug
 
 
 def response_successful(f):
@@ -95,7 +96,8 @@ class Taringa(object):
             self.login()
             self.store_user_key()
             self.store_user_id()
-            self.store_realtime_data()
+            # TODO: it is necesary ?
+            #self.store_realtime_data()
 
     def login(self):
         data = {
@@ -252,7 +254,9 @@ class Shout(object):
         url = self.base_url + '/ajax/shout/add'
         regex = r'</i>.*?<a href="(.*?)" title="Hace instantes"'
         request = TaringaRequest(cookie=self.cookie).post_request(url, data=data)
+        #debug("debug code %s",(request.text,))
         urlshout = re.findall(regex, request.text, re.DOTALL)
+        #debug("find url %s",urlshout)
         if len(urlshout) > 0:
             return "http://www.taringa.net" + urlshout[0]
         else:

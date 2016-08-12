@@ -14,9 +14,11 @@ if __name__ == '__main__':
     print taringa.user_key
     print taringa.user_id
     print taringa.cookie
-    print shout.add("Hola a todos")
-    # time.sleep(10)
-    # print shout.add("#PyT ImageShout",1,0,Kn3.import_to_kn3("http://traduccionesyedra.files.wordpress.com/2012/04/testing.jpg"))
+  #  print shout.add("Hola a todos")
+    #time.sleep(10)
+#    print shout.add("#PyT ImageShout",1,0,Kn3.import_to_kn3("http://traduccionesyedra.files.wordpress.com/2012/04/testing.jpg"))
+    print "attach a link link"
+    print shout.add("#PyT google http://google.com",Shout.LINK,attachment="http://google.com")
     # print taringa.get_user_id_from_nick("anpep")
     # print taringa.get_user_id_from_nick("overjt")
     # print shout.like("50735408","19963011")

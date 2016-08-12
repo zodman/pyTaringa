@@ -236,13 +236,18 @@ class Taringa(object):
 
 
 class Shout(object):
+    IMAGE=1
+    LINK=3
+    TEXT=0
+    PRIVACY_ON=1
+    PRIVACY_OFF=0
     def __init__(self, cookie):
         self.cookie = cookie
         self.base_url = BASE_URL
         self.api_url = API_URL
 
     @user_logged_in
-    def add(self, body, type_shout=0, privacy=0, attachment=''):
+    def add(self, body, type_shout=TEXT, privacy=PRIVACY_OFF, attachment=''):
         data = {
             'key': self.cookie.get('user_key'),
             'attachment': attachment,
@@ -250,6 +255,14 @@ class Shout(object):
             'privacy': privacy,
             'body': body
         }
+        if type_shout == self.LINK:
+            new_data = {
+                    'key': self.cookie.get("user_key"), 'islink': 1,
+                    'url': attachment
+                    }
+            attach_id = self._attach_link(new_data)
+            assert not attach_id is None, "id not returned"
+            data.update({'attachment': attach_id})
 
         url = self.base_url + '/ajax/shout/add'
         regex = r'</i>.*?<a href="(.*?)" title="Hace instantes"'
@@ -258,9 +271,16 @@ class Shout(object):
         urlshout = re.findall(regex, request.text, re.DOTALL)
         #debug("find url %s",urlshout)
         if len(urlshout) > 0:
-            return "http://www.taringa.net" + urlshout[0]
+            return self.base_url + urlshout[0]
         else:
             return debug('Could not obtain shout url')
+
+    def _attach_link(self, data):
+        url = self.base_url+ "/ajax/shout/attach"
+        response = TaringaRequest(cookie=self.cookie).post_request(url, data=data)
+        debug("attach response %s", response.text)
+        return response.json().get("data").get("id")
+
 
     @user_logged_in
     def add_comment(self, comment, obj_id, obj_owner, obj_type):

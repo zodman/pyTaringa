@@ -14,12 +14,15 @@ class PyTaringaTest(unittest.TestCase):
     @mock.patch("pytaringa.pytaringa.TaringaRequest.post_request")
     def test_shout_add(self, get_mock_post_request):
         mock_post = mock.MagicMock()
-        mock_post.text = u""" text</i>
+        mock_post.text =  u""" text</i>
         <a href="/zodman/mi/test123" title="Hace instantes">Mira nomas</a> """
         get_mock_post_request.return_value = mock_post
 
         shout = Shout(self.taringa.cookie)
         res = shout.add("testing")
+        assert "test123" in res, "not return url"
+
+        shout.add("testing2",type_shout=Shout.LINK,attachment="http://google.com")
         assert "test123" in res, "not return url"
         
 

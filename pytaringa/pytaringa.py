@@ -236,11 +236,13 @@ class Taringa(object):
 
 
 class Shout(object):
-    IMAGE=1
-    LINK=3
-    TEXT=0
-    PRIVACY_ON=1
-    PRIVACY_OFF=0
+    IMAGE = 1
+    LINK = 3
+    VIDEO = 2
+    TEXT = 0
+    PRIVACY_ON = 1
+    PRIVACY_OFF = 0
+
     def __init__(self, cookie):
         self.cookie = cookie
         self.base_url = BASE_URL
@@ -255,7 +257,7 @@ class Shout(object):
             'privacy': privacy,
             'body': body
         }
-        if type_shout == self.LINK:
+        if type_shout in ( self.LINK,):
             new_data = {
                     'key': self.cookie.get("user_key"), 'islink': 1,
                     'url': attachment

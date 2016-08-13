@@ -361,30 +361,3 @@ class Shout(object):
             return None
 
 
-class Kn3(object):
-    @staticmethod
-    def import_to_kn3(url):
-        request = requests.get(url, stream=True)
-        if request.status_code == 200:
-            temp_name = str(time.time())
-            with open(temp_name, 'wb') as f:
-                for chunk in request.iter_content(1024):
-                    f.write(chunk)
-            upload = Kn3.upload(temp_name)
-            os.remove(temp_name)
-            if not upload:
-                debug("Could not upload image")
-                return "Could not upload image"
-            else:
-                return upload
-
-    @staticmethod
-    def upload(filename):
-        kn3Url = "http://kn3.net/upload.php"
-        files = {'files[]': open(filename, 'rb')}
-        r = requests.post(kn3Url,files=files)
-        if r.status_code == 200:
-            response = json.loads(r.text)
-            return response["direct"]
-        else:
-            return None

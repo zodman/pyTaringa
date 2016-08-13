@@ -2,6 +2,7 @@ import unittest
 import mock
 from pytaringa import Taringa, Shout
 from pytaringa import TaringaRequest, BASE_URL
+from kn3 import Kn3
 import os
 
 class PyTaringaTest(unittest.TestCase):
@@ -27,4 +28,10 @@ class PyTaringaTest(unittest.TestCase):
         
 
         
-        
+class Kn3Test(unittest.TestCase):
+    image_test = "https://cdn.awwni.me/tof8.jpg"
+
+    def test_import(self):
+        result = Kn3.import_to_kn3(self.image_test, "logo-r1.png")
+        print result
+        self.assertTrue('kn3.net' in result,"Not WOkrs")

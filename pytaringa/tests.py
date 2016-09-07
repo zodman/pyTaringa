@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+# encoding=utf8
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
+# made by zodman
 import unittest
 import mock
 from pytaringa import Taringa, Shout
@@ -13,7 +17,7 @@ class PyTaringaTest(unittest.TestCase):
 
 
     @mock.patch("pytaringa.pytaringa.TaringaRequest.post_request")
-    def test_shout_add(self, get_mock_post_request):
+    def _test_shout_add(self, get_mock_post_request):
         mock_post = mock.MagicMock()
         mock_post.text =  u""" text</i>
         <a href="/zodman/mi/test123" title="Hace instantes">Mira nomas</a> """
@@ -25,9 +29,21 @@ class PyTaringaTest(unittest.TestCase):
 
         shout.add("testing2",type_shout=Shout.LINK,attachment="http://google.com")
         assert "test123" in res, "not return url"
-        
 
-        
+    def _test_post(self):
+	import random
+	import loremipsum
+	title = "title %s" % random.randint(0,100)
+	body = loremipsum.generate_paragraphs(5)
+	body= "".join([i[2] for i in body])
+	img1, img2 = "http://dummyimage.com/1080", "http://dummyimage.com/1080"
+	self.taringa.post(title, body, "uno, dos,tres,cutra,cinco",img1,img2) 
+
+    def test_like(self):
+        shout = Shout(self.taringa.cookie)
+        self.assertFalse(shout.like("75207986"), "not like")
+
+
 class Kn3Test(unittest.TestCase):
     image_test = "https://cdn.awwni.me/tof8.jpg"
 

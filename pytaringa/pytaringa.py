@@ -8,6 +8,7 @@ import requests
 import time
 import os
 import logging
+from kn3 import Kn3
 
 USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:29.0) '
 USER_AGENT += 'Gecko/20100101 Firefox/29.0'
@@ -29,11 +30,12 @@ def response_successful(f):
     @wraps(f)
     def inner(*args, **kwargs):
         response = f(*args, **kwargs)
-
         if response and response.status_code == 200:
             return response
+        elif response and response.status_code==403:
+            raise TaringaRequestException(response.content)
         else:
-            raise TaringaRequestException('Response was not succesful')
+            raise TaringaRequestException('Response was not succesful: %s' % response.content)
     return inner
 
 
@@ -63,12 +65,18 @@ class TaringaRequest(object):
         return request
 
     @response_successful
-    def post_request(self, url, data):
+    def post_request(self, url, data, is_ajax=False):
+        headers = self.headers
+        if is_ajax:
+            headers.update({
+                'X-Requested-With':'XMLHttpRequest'
+            })
+        data = {'data':data, 'headers':headers}
         if self.cookie:
             request = requests.post(url, cookies=self.cookie,
-                                    headers=self.headers, data=data)
+                                    **data)
         else:
-            request = requests.post(url, headers=self.headers, data=data)
+            request = requests.post(url, **data)
 
         return request
 
@@ -174,6 +182,7 @@ class Taringa(object):
         else:
             return response["id"]
 
+    @user_logged_in
     def follow_user(self, user_id):
         data = {
             'key': self.cookie.get('user_key'),
@@ -183,7 +192,20 @@ class Taringa(object):
         }
 
         url = self.base_url + '/notificaciones-ajax.php'
-        request = TaringaRequest(cookie=self.cookie).post_request(url, data=data)
+        request = TaringaRequest(cookie=self.cookie).post_request(url, data=data, is_ajax=True)
+        if request.status_code ==200:
+            if request.content == "":
+                return False
+            else:
+                response = request.json()
+                logger.info(response)
+                if response.get("status", None) == 3:
+                    raise TaringaRequestException(response["data"])
+                else:
+                    return True
+
+        else:
+            return False
 
     def get_wallpost(self, link):
         regex = r'<div class=\"activity-content\">(?:\s+)<span class=\"dialog\"></span>(?:\s+)<div class=\"activity-header clearfix\">(?:\s+)@<a class="hovercard"(?:.*?)<\/div>(?:\s+)<p>(.*?)<\/p>'
@@ -233,6 +255,31 @@ class Taringa(object):
         else:
             debug('Could not obtain the signature')
             return None
+
+    def post(self, title, body, tags, image_1x1, image_4x3):
+        # kn3 from taringa!!!!
+        image_1x1= Kn3.import_to_kn3(image_1x1)
+        image_4x3= Kn3.import_to_kn3(image_4x3)
+        print image_1x1, image_4x3
+        data = {
+            'id':'',
+            'titulo': title,
+            'cuerpo': body,
+            'categoria':7,
+            'tags': tags,
+            'image_1x1':image_1x1,
+            'image_4x3':image_4x3,
+            'own-source':1,
+            'sin_comentarios':0,
+            'twitter-vinculation':"false",
+            'facebook-vinculation':"false",
+            'vinculation_offer':'false',
+            'key': self.cookie.get('user_key'),
+
+        }
+        url = self.base_url +"/ajax/post/add"
+        request  = TaringaRequest(cookie=self.cookie).post_request(url, data=data)
+        print request.content
 
 
 class Shout(object):
@@ -314,7 +361,24 @@ class Shout(object):
         request = TaringaRequest(cookie=self.cookie).post_request(url, data=data)
         
     @user_logged_in
-    def like(self, shout_id, owner_id):
+    def like(self, shout_id):
+        data = {
+            'key': self.cookie.get('user_key'),
+            'object_id': shout_id
+        }
+
+        url = self.base_url + '/serv/shout/like'
+        logger.info("data to send %s", data)
+        request = TaringaRequest(cookie=self.cookie).post_request(url, data=data, is_ajax=True)
+        logger.info("response..... %s",request.content)
+        if request.status_code == 200:
+            return 1
+        else:
+            return "0 " + request.content
+
+
+    @user_logged_in
+    def old_like(self, shout_id, owner_id):
         data = {
             'key': self.cookie.get('user_key'),
             'owner': owner_id,

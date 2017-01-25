@@ -21,8 +21,7 @@ HEADERS = {'Referer': 'http://www.taringa.net',
 FORMAT_LOGGIN= '%(asctime)-15s  %(levelname)s  %(module)s:%(funcName)s+%(lineno)d %(message)s'
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(format=FORMAT_LOGGIN, level=logging.DEBUG)
-
+logging.basicConfig(format=FORMAT_LOGGIN)
 debug = logger.debug
 
 
@@ -369,12 +368,15 @@ class Shout(object):
 
         url = self.base_url + '/serv/shout/like'
         logger.info("data to send %s", data)
-        request = TaringaRequest(cookie=self.cookie).post_request(url, data=data, is_ajax=True)
+        try:
+            request = TaringaRequest(cookie=self.cookie).post_request(url, data=data, is_ajax=True)
+        except TaringaRequestException:
+            return False
         logger.info("response..... %s",request.content)
         if request.status_code == 200:
-            return 1
+            return True
         else:
-            return "0 " + request.content
+            return False
 
 
     @user_logged_in
